@@ -2,7 +2,7 @@
 import args from 'args'
 import process from "node:process"
 import fs from "node:fs"
-import parseEpub from '../parseEpub'
+import parseEpub from '../epub/parseEpub'
 import { Converter } from './convert'
 import { mergeMarkdowns } from './merge'
 import logger from '../logger'
