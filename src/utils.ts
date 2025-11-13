@@ -22,9 +22,6 @@ const xmlParser = new XMLParser({
   parseAttributeValue: true,
 });
 
-const cacheNavPool: Record<string, TOCItem> = {
-}
-
 /**
  * Fix the generated file name according to the title corresponding to toc
  */

@@ -162,8 +162,6 @@ export class Epub {
 
   getSpine(): Record<string, number> {
     const spine: Record<string, number> = {}
-    this.getManifest()
-    console.log(_.get(this._content, ['package', 'spine'], []))
     let itemRefs = _.get(this._content, ['package', 'spine', 'itemref'], [])
     if (!Array.isArray(itemRefs)) itemRefs = [itemRefs]
     itemRefs.map(
@@ -315,7 +313,6 @@ export class Epub {
 
   getSection(id: string): Section | null {
     let sectionIndex = -1
-    // console.log(id, this.getManifest())
     if (this._spine) sectionIndex = this._spine[id]
     // fix other html ont include spine structure
     if (sectionIndex === undefined) {

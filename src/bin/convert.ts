@@ -1,6 +1,6 @@
-import { basename, dirname, extname, format, join, parse } from 'node:path'
-import { existsSync, mkdirSync, readv } from 'node:fs'
-import logger, { name } from '../logger'
+import { basename, dirname, extname, join } from 'node:path'
+import { existsSync, mkdirSync } from 'node:fs'
+import logger from '../logger'
 import _ from 'lodash'
 import { writeFileSync } from 'write-file-safe'
 
@@ -193,10 +193,9 @@ export class Converter {
     if (downloadTasks.length) await Promise.all(downloadTasks)
   }
 
-  private async getFileDataAsync(structure: Structure, handleContent?: (content: string) => string) {
-    let { id, type, filepath, outpath, orderLabel } = structure
+  private async getFileDataAsync(structure: Structure) {
+    let { id, type, filepath, outpath } = structure
     let content: Buffer | string = '',
-      // nav: TOCItem | undefined,
       // current content's internal links
       links: { url: string, hash: string, id: string, toId: string }[] = []
 
