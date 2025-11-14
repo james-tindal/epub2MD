@@ -5,11 +5,12 @@ import _ from 'lodash'
 import { writeFileSync } from 'write-file-safe'
 
 import parseEpub from '../epub/parseEpub'
-import type { Epub, TOCItem } from '../epub/parseEpub'
+import type { Epub } from '../epub/parseEpub'
 import { checkFileType, convertHTML, fixLinkPath, getClearFilename, resolveHTMLId } from './helper'
 import { matchTOC } from '../utils'
 import parseHref from '../parseLink'
 import { Commands, type CommandType } from './cli'
+import { TocItem } from '../xml'
 
 interface Structure {
   id: string
@@ -56,7 +57,7 @@ export class Converter {
 
   private clearOutpath({ id, outpath, orderLabel }: Structure) {
     /*get readable name from toc items*/
-    function _matchNav(id: Structure['id'], tocItems?: TOCItem[]): TOCItem | undefined {
+    function _matchNav(id: Structure['id'], tocItems?: TocItem[]): TocItem | undefined {
       if (Array.isArray(tocItems))
         for (let i = 0; i < tocItems.length; i++) {
           const item = tocItems[i];
