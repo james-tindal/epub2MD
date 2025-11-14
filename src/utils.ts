@@ -1,5 +1,4 @@
 import _ from 'lodash'
-import { XMLParser } from 'fast-xml-parser'
 import { GeneralObject } from './types'
 import type { TOCItem } from './epub/parseEpub'
 
@@ -15,12 +14,6 @@ export interface TraverseNestedObject {
 
   childrenKey: string
 }
-
-const xmlParser = new XMLParser({
-  attributeNamePrefix: '@',
-  ignoreAttributes: false,
-  parseAttributeValue: true,
-});
 
 /**
  * Fix the generated file name according to the title corresponding to toc
@@ -39,19 +32,6 @@ export function matchTOC(id: string, navs?: TOCItem[]): TOCItem | undefined {
 export const sanitizeFileName = (fileName: string, replacementChar = '_') => {
   const invalidCharsPattern = /[\\/:*?"<>|]/g;
   return fileName.replace(invalidCharsPattern, replacementChar);
-}
-
-export const xmlToJson = (xml: string) => {
-  return xmlParser.parse(xml)
-  // new Promise<any>((resolve, reject) => {
-  //   xmlParser.parse(xml, (err: Error, object: GeneralObject) => {
-  //     if (err) {
-  //       reject(err)
-  //     } else {
-  //       resolve(object)
-  //     }
-  //   })
-  // })
 }
 
 export const determineRoot = (opfPath: string) => {

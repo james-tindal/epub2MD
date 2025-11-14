@@ -7,7 +7,8 @@ import type { ParserOptions, GeneralObject } from '../types'
 import nodeZip from 'node-zip'
 import parseLink from '../parseLink'
 import parseSection, { Section } from '../parseSection'
-import { xmlToJson, determineRoot } from '../utils'
+import { determineRoot } from '../utils'
+import { parseXml } from '../xml/parseXml'
 
 type MetaInfo = Partial<{
   title: string,
@@ -130,7 +131,7 @@ export class Epub {
 
   private getXmlFile(path: string): GeneralObject {
     const xml = this.getFile(path).asText()
-    return xmlToJson(xml)
+    return parseXml(xml)
   }
 
   /**
