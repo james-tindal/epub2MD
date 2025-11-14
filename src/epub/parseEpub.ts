@@ -118,27 +118,18 @@ export class Epub {
 
 
   /**
-   * Parse the corresponding ID according to the link.
-   * @param {string} href - The link to be resolved.
-   * @return {string} The ID of the item.
+   * Resolves the item ID from a given href link in the EPUB manifest.
+   *
+   * @param {string} href - The href link to resolve the item ID for.
+   * @returns {string} The corresponding item ID from the manifest.
    */
-  private _resolveIdFromLink(href: string): string {
+  getItemId(href: string) {
     const { name: tarName } = parseLink(href)
     const tarItem = _.find(this._manifest, (item: Manifest) => {
       const { name } = parseLink(item.href)
       return name === tarName
     })
     return _.get(tarItem!, 'id')
-  }
-
-  /**
-   * Resolves the item ID from a given href link in the EPUB manifest.
-   *
-   * @param {string} href - The href link to resolve the item ID for.
-   * @returns {string} The corresponding item ID from the manifest.
-   */
-  getItemId(href: string): string {
-    return this._resolveIdFromLink(href)
   }
 
   /**
@@ -182,7 +173,7 @@ export class Epub {
       if (prefix) {
         name = `${prefix.map((p: GeneralObject) => p['_']).join('')}${name}`
       }
-      const sectionId = this._resolveIdFromLink(path)
+      const sectionId = this.getItemId(path)
       const { hash: nodeId } = parseLink(path)
       const playOrder = runningIndex
 
@@ -239,7 +230,7 @@ export class Epub {
         children = parseNavPoints(children)
       }
 
-      const sectionId = this._resolveIdFromLink(path)
+      const sectionId = this.getItemId(path)
 
       return {
         name,
@@ -297,7 +288,7 @@ export class Epub {
         id,
         htmlString: html,
         resourceResolver: this.getFile.bind(this),
-        idResolver: this._resolveIdFromLink.bind(this),
+        idResolver: this.getItemId.bind(this),
         expand: this._options.expand,
       })
 
