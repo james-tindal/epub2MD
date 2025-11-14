@@ -1,13 +1,43 @@
 import { parseMetaContainer } from './meta-container'
-import { parseOpf } from './opf'
+import { Opf, parseOpf } from './opf'
 import { parseToc } from './toc'
 export type { Opf } from './opf'
-export { Toc } from './toc'
+export { Toc, TocItem } from './toc'
+import { Zip } from '../epub/zip'
+import path from 'node:path'
 
-const xml = {
-  parseMetaContainer,
-  parseOpf,
-  parseToc,
+export function parseStructure(zip: Zip) {
+  const parse = new Parse(zip)
+  const { opfPath, opfFolder } = parse.metaContainer()
+  const opf = parse.opf(opfPath)
+  const toc = parse.toc(opf, opfFolder)
+
+  return {
+    opfFolder,
+    opf,
+    toc
+  }
 }
 
-export default xml
+export type Structure = ReturnType<typeof parseStructure>
+
+class Parse {
+  constructor(private zip: Zip) {}
+  metaContainer() {
+    const string = this.zip.getFile('/META-INF/container.xml').asText()
+    return parseMetaContainer(string)
+  }
+  opf(path: string) {
+    const string = this.zip.getFile(path).asText()
+    return parseOpf(string)
+  }
+  // https://github.com/gaoxiaoliangz/epub-parser/issues/13
+  // https://www.w3.org/publishing/epub32/epub-packages.html#sec-spine-elem
+  toc(opf: Opf, opfFolder: string) {
+    const relativePath = opf.manifest.getById('ncx')?.href
+    if (!relativePath) return
+    const fullPath = path.join(opfFolder, relativePath)
+    const string = this.zip.getFile(fullPath).asText()
+    return parseToc(string, href => opf.manifest.getItemId(href))
+  }
+}

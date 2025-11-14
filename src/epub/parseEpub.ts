@@ -3,59 +3,41 @@ import { join } from 'node:path'
 import _ from 'lodash'
 
 import parseSection, { Section } from '../parseSection'
-import xml, { Opf, Toc } from '../xml'
 import { parseOptions, ParserOptions } from './options'
 import { Zip } from './zip'
+import { parseStructure, Opf, Toc } from '../xml'
 
 
 export class Epub {
-  // only for html/xhtml, not include images/css/js
-  private _spine?: Record<string, number> // array of ids defined in manifest
-  private opfFolder!: string
-  opf!: Opf
+  private zip: Zip
+  private options: ParserOptions
+  private _spine?: Record<string, number>
+  private opfFolder: string
 
+  opf: Opf
   structure?: Toc
   info?: Opf['metadata']
   sections?: Section[]
   tocFile?: string
 
-  constructor(
-    private zip: Zip,
-    private options: ParserOptions,
-  ) {}
-
-  parse() {
-    const { opfPath, opfFolder } = this.parseMetaContainer()
-    this.opfFolder = opfFolder
-    const opf = this.opf = this.parseOpf(opfPath)
+  constructor(pathOrFileContent: string | Buffer, options?: ParserOptions) {
+    const { parsedOptions, zip, structure } = this.parse(pathOrFileContent, options)
+    this.zip = zip
+    this.options = parsedOptions
+    const opf = this.opf = structure.opf
+    this.opfFolder = structure.opfFolder
     this.info = opf.metadata
     this._spine = opf.spine
-
-    // https://github.com/gaoxiaoliangz/epub-parser/issues/13
-    // https://www.w3.org/publishing/epub32/epub-packages.html#sec-spine-elem
-    const tocPath = opf.manifest.getById('ncx')?.href
-    const toc = tocPath === undefined ? undefined :
-      this.parseToc(tocPath)
-    this.structure = toc
+    this.structure = structure.toc
 
     this.sections = this._resolveSections()
-
-    return this
-  }
-  
-  parseMetaContainer() {
-    const fileText = this.getFile('/META-INF/container.xml').asText()
-    return xml.parseMetaContainer(fileText)
   }
 
-  parseOpf(path: string) {
-    const fileText = this.getFile('/' + path).asText()
-    return xml.parseOpf(fileText)
-  }
-
-  parseToc(path: string) {
-    const fileText = this.getFile(path).asText()
-    return xml.parseToc(fileText, href => this.opf.manifest.getItemId(href))
+  private parse(pathOrFileContent: string | Buffer, options?: ParserOptions) {
+    const { fileContent, parsedOptions } = parseOptions(pathOrFileContent, options)
+    const zip = new Zip(fileContent as Buffer)
+    const structure = parseStructure(zip)
+    return { parsedOptions, zip, structure }
   }
 
   getFile(path: string) {
@@ -123,8 +105,4 @@ export class Epub {
   }
 }
 
-export default function parse(pathOrFileContent: string | Buffer, options?: ParserOptions) {
-  const { fileContent, parsedOptions } = parseOptions(pathOrFileContent, options)
-  const zip = new Zip(fileContent as Buffer)
-  return new Epub(zip, parsedOptions).parse()
-}
+export default (...args: ConstructorParameters<typeof Epub>) => new Epub(...args)
