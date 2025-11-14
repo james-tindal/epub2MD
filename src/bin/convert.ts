@@ -135,7 +135,7 @@ export class Converter {
     const padding = Math.floor(
       Math.log10(this.epub?.sections?.length ?? 0)
     );
-    for (const { href: filepath, id } of this.epub.getManifest()) {
+    for (const { href: filepath, id } of this.epub.opf.manifest) {
       let outpath = '', type: Structure['type'] = ''
       // simply unzip
       if (unzip) outpath = join(this.outDir, filepath)
