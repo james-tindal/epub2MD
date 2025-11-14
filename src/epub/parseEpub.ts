@@ -1,23 +1,19 @@
-import fs from 'node:fs'
 import { Buffer } from 'node:buffer'
 import _ from 'lodash'
 
-import type { ParserOptions } from '../types'
 // @ts-ignore
 import nodeZip from 'node-zip'
 import parseLink from '../parseLink'
 import parseSection, { Section } from '../parseSection'
 import xml, { Opf, Toc } from '../xml'
+import { parseOptions, ParserOptions } from './options'
 
-
-export const defaultOptions = { type: "path", expand: false } as ParserOptions
 
 export class Epub {
   private _zip: any // nodeZip instance
   // only for html/xhtml, not include images/css/js
   private _spine?: Record<string, number> // array of ids defined in manifest
   private opfFolder!: string
-  private _options: ParserOptions = defaultOptions
   opf!: Opf
 
   structure?: Toc
@@ -25,9 +21,8 @@ export class Epub {
   sections?: Section[]
   tocFile?: string
 
-  constructor(buffer: Buffer, options?: ParserOptions) {
+  constructor(buffer: Buffer, private options: ParserOptions) {
     this._zip = new nodeZip(buffer, { binary: true, base64: false, checkCRC32: true })
-    if (options) this._options = { ...defaultOptions, ...options }
   }
 
   parse() {
@@ -135,11 +130,11 @@ export class Epub {
         htmlString: html,
         getFile: this.getFile.bind(this),
         getItemId: this.getItemId.bind(this),
-        expand: this._options.expand,
+        expand: this.options.expand,
       })
 
-      if (this._options.convertToMarkdown) {
-        section.register(this._options.convertToMarkdown)
+      if (this.options.convertToMarkdown) {
+        section.register(this.options.convertToMarkdown)
       }
       return section
     })
@@ -156,15 +151,7 @@ export class Epub {
   }
 }
 
-export default function parserWrapper(target: string | Buffer, opts?: ParserOptions) {
-  // seems 260 is the length limit of old windows standard
-  // so path length is not used to determine whether it's path or binary string
-  // the downside here is that if the filepath is incorrect, it will be treated as binary string by default
-  // but it can use options to define the target type
-  const options = { ...defaultOptions, ...opts }
-  let _target = target
-  if (options.type === 'path' || (typeof target === 'string' && fs.existsSync(target))) {
-    _target = fs.readFileSync(target as string, 'binary')
-  }
-  return new Epub(_target as Buffer, options).parse()
+export default function parse(pathOrFileContent: string | Buffer, options?: ParserOptions) {
+  const { fileContent, parsedOptions } = parseOptions(pathOrFileContent, options)
+  return new Epub(fileContent as Buffer, parsedOptions).parse()
 }
