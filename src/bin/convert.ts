@@ -6,7 +6,7 @@ import { writeFileSync } from 'write-file-safe'
 
 import parseEpub from '../epub/parseEpub'
 import type { Epub } from '../epub/parseEpub'
-import { checkFileType, convertHTML, fixLinkPath, getClearFilename, resolveHTMLId } from './helper'
+import { checkFileType, convertHTML, fixLinkPath, sanitizeFileName, resolveHTMLId } from './helper'
 import parseHref from '../parseLink'
 import { Commands, type CommandType } from './cli'
 
@@ -57,7 +57,7 @@ export class Converter {
 
     const nav = this.epub!.structure?.getBySectionId(id)
 
-    const fileName = getClearFilename(nav ? nav.name + this.MD_FILE_EXT : basename(outpath))
+    const fileName = sanitizeFileName(nav ? nav.name + this.MD_FILE_EXT : basename(outpath))
     const outDir = dirname(outpath)
 
     return {
@@ -212,10 +212,10 @@ export class Converter {
           const sectionId = this.epub!.getItemId(url)
 
           const internalNav = this.epub?.structure?.getBySectionId(sectionId)
-            || { name: link, sectionId: getClearFilename(basename(link)) }
+            || { name: link, sectionId: sanitizeFileName(basename(link)) }
 
           // fix link's path
-          let validPath = getClearFilename(extname(internalNav.name)
+          let validPath = sanitizeFileName(extname(internalNav.name)
             ? internalNav.name : (internalNav.name + this.MD_FILE_EXT))
 
           // Adjust internal link adjustment, files with numbers in the name
