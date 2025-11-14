@@ -1,16 +1,15 @@
 import { Buffer } from 'node:buffer'
+import { join } from 'node:path'
 import _ from 'lodash'
 
-// @ts-ignore
-import nodeZip from 'node-zip'
 import parseLink from '../parseLink'
 import parseSection, { Section } from '../parseSection'
 import xml, { Opf, Toc } from '../xml'
 import { parseOptions, ParserOptions } from './options'
+import { Zip } from './zip'
 
 
 export class Epub {
-  private _zip: any // nodeZip instance
   // only for html/xhtml, not include images/css/js
   private _spine?: Record<string, number> // array of ids defined in manifest
   private opfFolder!: string
@@ -21,9 +20,10 @@ export class Epub {
   sections?: Section[]
   tocFile?: string
 
-  constructor(buffer: Buffer, private options: ParserOptions) {
-    this._zip = new nodeZip(buffer, { binary: true, base64: false, checkCRC32: true })
-  }
+  constructor(
+    private zip: Zip,
+    private options: ParserOptions,
+  ) {}
 
   parse() {
     const { opfPath, opfFolder } = this.parseMetaContainer()
@@ -59,23 +59,11 @@ export class Epub {
     return xml.parseToc(fileText, this.getItemId.bind(this))
   }
 
-  getFile(path: string): {
-    asText: () => string
-    asNodeBuffer: () => Buffer
-  } {
-    let _path
-    if (path[0] === '/') {
-      // use absolute path, root is zip root
-      _path = path.substr(1)
-    } else {
-      _path = this.opfFolder + path
-    }
-    const file = this._zip.file(decodeURI(_path))
-    if (file) {
-      return file
-    } else {
-      throw new Error(`${_path} not found!`)
-    }
+  getFile(path: string) {
+    const isAbsolute = path.startsWith('/')
+    const absolutePath = isAbsolute
+      ? path : join(this.opfFolder, path)
+    return this.zip.getFile(absolutePath)
   }
 
   /**
@@ -153,5 +141,6 @@ export class Epub {
 
 export default function parse(pathOrFileContent: string | Buffer, options?: ParserOptions) {
   const { fileContent, parsedOptions } = parseOptions(pathOrFileContent, options)
-  return new Epub(fileContent as Buffer, parsedOptions).parse()
+  const zip = new Zip(fileContent as Buffer)
+  return new Epub(zip, parsedOptions).parse()
 }
