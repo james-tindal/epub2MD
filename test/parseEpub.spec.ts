@@ -1,5 +1,5 @@
 import * as path from 'node:path'
-import { pick } from 'lodash'
+import { get, pick } from 'lodash'
 import parse from '../src/epub/parseEpub'
 
 const baseDir = process.cwd()
@@ -10,7 +10,10 @@ for (const filename of filesToBeTested)
     test('snapshot', () => {
       const filePath = path.join(baseDir, `fixtures/${filename}.epub`)
       const epub = parse(filePath)
-      const snapshot = pick(epub, ['structure', 'info', '_spine'])
+      const snapshot = {
+        ...pick(epub, ['info', '_spine']),
+        structure: get(epub, ['structure', 'topLevelItems'])
+      }
       expect(snapshot).toMatchSnapshot()
     })
   })

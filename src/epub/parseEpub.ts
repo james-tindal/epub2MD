@@ -7,7 +7,7 @@ import type { ParserOptions } from '../types'
 import nodeZip from 'node-zip'
 import parseLink from '../parseLink'
 import parseSection, { Section } from '../parseSection'
-import xml, { Opf, TocItem } from '../xml'
+import xml, { Opf, Toc } from '../xml'
 
 
 export const defaultOptions = { type: "path", expand: false } as ParserOptions
@@ -20,7 +20,7 @@ export class Epub {
   private _options: ParserOptions = defaultOptions
   opf!: Opf
 
-  structure?: TocItem[]
+  structure?: Toc
   info?: Opf['metadata']
   sections?: Section[]
   tocFile?: string

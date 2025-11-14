@@ -6,16 +6,12 @@ import { Epub } from '../epub/parseEpub'
 
 export function parseToc(text: string, getItemId: Epub['getItemId']) {
   const object = parseXml(text) as any
-  return object.html
+  const toc = object.html
     ? html(object, getItemId)
     : ncx(object, getItemId)
+  return new Toc(toc)
 }
 
-/**
- * Generates a structured table of contents from the EPUB's navigation data
- * @param tocObj - The table of contents object from the EPUB file
- * @returns Array of TOCItem objects representing the hierarchical structure
- */
 function ncx(tocObj: GeneralObject, getItemId: Epub['getItemId']): TocItem[] {
   // may be GeneralObject or GeneralObject[] or []
   const rootNavPoints = _.get(tocObj, ['ncx', 'navMap', 'navPoint'], [])
@@ -101,4 +97,32 @@ export interface TocItem {
   path: string
   playOrder: number | string
   children?: TocItem[]
+}
+
+export class Toc {
+  constructor(
+    private topLevelItems: TocItem[]
+  ) {}
+
+  private * visitAll(): Generator<TocItem> {
+    const queue = this.topLevelItems
+
+    while (queue.length) {
+      const node = queue.shift()
+      if (node) yield node
+      if (node?.children)
+        for (const child of node.children)
+          queue.push(child)
+    }
+  }
+  
+  find(predicate: (item: TocItem) => unknown) {
+    for (const item of this.visitAll())
+      if (predicate(item))
+        return item
+  }
+
+  getBySectionId(id: string) {
+    return this.find(item => item.sectionId === id)
+  }
 }

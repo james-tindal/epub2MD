@@ -1,6 +1,5 @@
 import _ from 'lodash'
 import { GeneralObject } from './types'
-import { TocItem } from './xml'
 
 
 export interface TraverseNestedObject {
@@ -13,19 +12,6 @@ export interface TraverseNestedObject {
   finalTransformer?: (node: GeneralObject) => any
 
   childrenKey: string
-}
-
-/**
- * Fix the generated file name according to the title corresponding to toc
- */
-export function matchTOC(id: string, navs?: TocItem[]): TocItem | undefined {
-  // Adjust internal link adjustment, files with numbers in the name
-  if (!navs) return
-  for (const s of navs) {
-    if (id === s.sectionId) {
-      return s
-    }
-  }
 }
 
 // 函数用于清理文件名，将非法字符替换为下划线

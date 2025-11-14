@@ -7,10 +7,8 @@ import { writeFileSync } from 'write-file-safe'
 import parseEpub from '../epub/parseEpub'
 import type { Epub } from '../epub/parseEpub'
 import { checkFileType, convertHTML, fixLinkPath, getClearFilename, resolveHTMLId } from './helper'
-import { matchTOC } from '../utils'
 import parseHref from '../parseLink'
 import { Commands, type CommandType } from './cli'
-import { TocItem } from '../xml'
 
 interface Structure {
   id: string
@@ -54,27 +52,10 @@ export class Converter {
     if (!existsSync(this.outDir)) mkdirSync(this.outDir)
   }
 
-
   private clearOutpath({ id, outpath, orderLabel }: Structure) {
     /*get readable name from toc items*/
-    function _matchNav(id: Structure['id'], tocItems?: TocItem[]): TocItem | undefined {
-      if (Array.isArray(tocItems))
-        for (let i = 0; i < tocItems.length; i++) {
-          const item = tocItems[i];
-          if (item.sectionId === id) {
-            return item;
-          }
-          if (item.children) {
-            const childMatch = _matchNav(id, item.children);
-            if (childMatch) {
-              return childMatch;
-            }
-          }
-        }
-      return undefined;
-    }
 
-    const nav = _matchNav(id, this.epub!.structure);
+    const nav = this.epub!.structure?.getBySectionId(id)
 
     const fileName = getClearFilename(nav ? nav.name + this.MD_FILE_EXT : basename(outpath))
     const outDir = dirname(outpath)
@@ -230,7 +211,7 @@ export class Converter {
 
           const sectionId = this.epub!.getItemId(url)
 
-          const internalNav = matchTOC(sectionId, this.epub?.structure)
+          const internalNav = this.epub?.structure?.getBySectionId(sectionId)
             || { name: link, sectionId: getClearFilename(basename(link)) }
 
           // fix link's path
