@@ -209,7 +209,7 @@ export class Converter {
 
           link = resolveHTMLId(basename(url))
 
-          const sectionId = this.epub!.getItemId(url)
+          const sectionId = this.epub!.opf.manifest.getItemId(url)
 
           const internalNav = this.epub?.structure?.getBySectionId(sectionId)
             || { name: link, sectionId: sanitizeFileName(basename(link)) }
@@ -227,7 +227,7 @@ export class Converter {
           }
 
           // content's id
-          const toId = this.epub!.getItemId(
+          const toId = this.epub!.opf.manifest.getItemId(
             join(dirname(filepath), url)
           )
 
