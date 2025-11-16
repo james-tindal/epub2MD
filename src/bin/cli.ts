@@ -203,16 +203,14 @@ function run(cmd: CommandType) {
 
   // Handle information display commands
   const cmdPath = flags[cmd]
-  if (typeof cmdPath === 'string') {
-    parseEpub(cmdPath)
-      .then((res) => {
-        logger.success(`This book ${cmd}:`)
-        logger.json(res[cmd as 'info' | 'structure' | 'sections'])
-      })
-      .catch((error) => {
-        logger.error(error)
-      })
-  } else {
+  if (typeof cmdPath !== 'string')
     logger.error(`Path must be a string, got ${typeof cmdPath}`)
+  try {
+    const epub = parseEpub(cmdPath)
+    logger.success(`This book ${cmd}:`)
+    logger.json(epub[cmd as 'info' | 'structure' | 'sections'])
+  }
+  catch(error) {
+    logger.error(error as string)
   }
 }

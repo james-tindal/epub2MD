@@ -7,9 +7,9 @@ const filesToBeTested = ['file-1', 'file-2', 'file-3', 'file-4', 'file-1-no-toc'
 
 for (const filename of filesToBeTested)
   describe(`parser 测试 ${filename}.epub`, () => {
-    test('snapshot', async () => {
+    test('snapshot', () => {
       const filePath = path.join(baseDir, `fixtures/${filename}.epub`)
-      const epub = await parse(filePath)
+      const epub = parse(filePath)
       const snapshot = pick(epub, ['structure', 'info', '_spine'])
       expect(snapshot).toMatchSnapshot()
     })
